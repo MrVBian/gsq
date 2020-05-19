@@ -314,7 +314,7 @@ robot.setCamera(cameraName, cameraIntrinsics)
 
 
 ### add object demo
-# robot.addObjects()
+robot.addObjects()
 
 
 ### move and gripper demo
