@@ -331,7 +331,7 @@ robot.restart()
 
 
 ### add object demo
-# robot.addObjects()
+robot.addObjects()
 
 
 ### move and gripper demo

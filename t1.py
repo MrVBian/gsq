@@ -6,6 +6,8 @@ from simulation import vrep
 import time
 import cv2
 
+import bincutting as box
+
 
 class Robot(object):
     def __init__(self, connectIp, connectPort, objectMeshDir = '', objectNumber = 0, workspaceLimits = [[]]):
@@ -200,7 +202,7 @@ class Robot(object):
 
             rootPath = '/home/bian/project/visual-pushing-grasping/'
             print('rootPath + currMeshFile: ', rootPath + currMeshFile)
-            print('currShapeName: ', currShapeName)
+            # print('currShapeName: ', currShapeName)
             retResp, retInts, retFloats, retStrings, retBuffer = vrep.simxCallScriptFunction(self.clientID, scriptDescription, vrep.sim_scripttype_childscript, functionName,[0,0,255,0], objectPosition + objectOrientation + objectColor, [rootPath + currMeshFile, currShapeName], bytearray(), vrep.simx_opmode_blocking)
 
             if retResp == 8:
@@ -241,14 +243,14 @@ class Robot(object):
             exit()
 
 
-    def createPureShape(self, toolShape, toolPosition, mass = 0.1):
+    def createPureShape(self, toolShape, toolPosition, mass = 0.5):
 
         # the name of the scene object where the script is attached to, or an empty string if the script has no associated scene object
         scriptDescription = 'remoteApiCommandServer'
         # the name of the Lua function to call in the specified script
         functionName = 'simCreatePureShape'
 
-        vrep.simxCallScriptFunction(self.clientID, scriptDescription, vrep.sim_scripttype_childscript,
+        retResp, retInts, retFloats, retStrings, retBuffer = vrep.simxCallScriptFunction(self.clientID, scriptDescription, vrep.sim_scripttype_childscript,
                             'simCreatePureShape',
                             [],
                             [toolShape[0], toolShape[1], toolShape[2], toolPosition[0], toolPosition[1], toolPosition[2], mass],
@@ -264,9 +266,9 @@ class Robot(object):
         simRet, targetPosition = vrep.simxGetObjectPosition(self.clientID, targetHandle,-1,vrep.simx_opmode_blocking)
         simRet, targetOrientation = vrep.simxGetObjectOrientation(self.clientID, targetHandle,-1,vrep.simx_opmode_blocking)
 
-        print('targetHandle: ', targetHandle)
-        print('targetPosition: ', targetPosition)
-        print('targetOrientation: ', targetOrientation)
+        # print('targetHandle: ', targetHandle)
+        # print('targetPosition: ', targetPosition)
+        # print('targetOrientation: ', targetOrientation)
 
         if toolPosition != None:
             moveDirection = np.asarray([toolPosition[0] - targetPosition[0], toolPosition[1] - targetPosition[1], toolPosition[2] - targetPosition[2]])
@@ -276,8 +278,8 @@ class Robot(object):
             # moveStep = 0.02 * moveDirection / moveMagnitude
             # moveStepNumber = int(np.floor(moveMagnitude / 0.02))
 
-            print('move: ', toolPosition)
-            print('moveStepNumber: ', moveStepNumber)
+            # print('move: ', toolPosition)
+            # print('moveStepNumber: ', moveStepNumber)
             for stepIter in range(moveStepNumber):
                 ### move
                 vrep.simxSetObjectPosition(self.clientID, targetHandle, -1, (targetPosition[0] + moveStep[0], targetPosition[1] + moveStep[1], targetPosition[2] + moveStep[2]), vrep.simx_opmode_blocking)
@@ -291,7 +293,7 @@ class Robot(object):
             turnStep = 1 / turnSpeed * turnDirection / turnMagnitude
             turnStepNumber = int(np.floor(turnMagnitude * turnSpeed))
 
-            print('turnStepNumber: ', turnStepNumber)
+            # print('turnStepNumber: ', turnStepNumber)
             for stepIter in range(turnStepNumber):
                 ### turn
                 vrep.simxSetObjectOrientation(self.clientID, targetHandle, -1, (targetOrientation[0] + turnStep[0], targetOrientation[1] + turnStep[1], targetOrientation[2] + turnStep[2]), vrep.simx_opmode_blocking)
@@ -336,12 +338,16 @@ class Robot(object):
 
 
     def openSucker(self, objectName, parentObjectName):
+
+        # print('openSucker')
         simRet, objectHandle = vrep.simxGetObjectHandle(self.clientID, objectName, vrep.simx_opmode_blocking)
         simRet, parentObject = vrep.simxGetObjectHandle(self.clientID, parentObjectName, vrep.simx_opmode_blocking)
         vrep.simxSetObjectParent(self.clientID, objectHandle, parentObject, True, vrep.simx_opmode_blocking)
 
 
     def closeSucker(self, objectName, parentObjectName):
+
+        # print('closeSucker')
         simRet, objectHandle = vrep.simxGetObjectHandle(self.clientID, objectName, vrep.simx_opmode_blocking)
         simRet, parentObject = vrep.simxGetObjectHandle(self.clientID, parentObjectName, vrep.simx_opmode_blocking)
         vrep.simxSetObjectParent(self.clientID, objectHandle, parentObject, False, vrep.simx_opmode_blocking)
@@ -361,9 +367,9 @@ robot.connect()
 
 
 ### start stop restart demo
-# robot.start()
+robot.start()
 # robot.stop()
-robot.restart()
+# robot.restart()
 
 
 ### setCameraParameter demo
@@ -374,8 +380,6 @@ robot.restart()
 
 ### add object demo
 # robot.addObjects()
-# robot.addOneObject("/home/bian/project/visual-pushing-grasping/objects/blocks/0.obj", 'shape_00', 0.6, 0.3, 0.4)
-robot.createPureShape([0.1, 0.1, 0.1], [0, -0.5, 0.1])
 
 
 ### move and gripper demo
@@ -392,21 +396,54 @@ objectName = 'suctionPadLoopClosureDummy1'
 clouseParentObjectName = 'suctionPadLink'
 openParentObjectName = 'suctionPad'
 
-# robot.closeSucker(objectName, parentObjectName)
-# robot.move(targetName, [-0.625, 0.075, 0.4], None)
-# robot.move(targetName, [-0.3, -0.2, 0.4], None)
-# robot.move(targetName, [-0.3, -0.2, -0.05], None)
-# robot.move(targetName, [-0.3, -0.2, 0.4], None)
-# robot.move(targetName, [-0.5, 0, 0.4], None)
-# robot.move(targetName, [-0.5, 0, -0.03], None)
-# robot.closeSucker(objectName, clouseParentObjectName)
-# robot.openSucker(objectName, openParentObjectName)
-# robot.move(targetName, [-0.5, 0, 0.4], None)
+# add cuboid
+boxs = box.newBoxs
+# print(boxs)
+boxsNum = len(boxs)
+
+for i in range(boxsNum):
+    shape = [boxs[i][0], boxs[i][1], boxs[i][2]]
+    toolPosition = [boxs[i][3], boxs[i][4], boxs[i][5] + boxs[i][2]/1.5]
+    print('This is the %dth, a total of %d cubes'%(i+1, boxsNum), 'shape: ', shape, 'toolPosition: ',  toolPosition)
+    initPosition = [0, -0.5, boxs[i][2]/2]
+
+    scaling = 0.95
+    robot.createPureShape([shape[0]*scaling, shape[1]*scaling, shape[2]], initPosition)
+
+    simRet, curr = vrep.simxGetObjectHandle(robot.clientID, 'Cuboid'+str(i), vrep.simx_opmode_blocking)
+
+    # print('moveHeight: ', initPosition[2]*2-0.05)
+    # print('closeHeight: ', toolPosition[2] + 0.09)
+    robot.move(targetName, [initPosition[0], initPosition[1], 0.6], None)
+    robot.move(targetName, [initPosition[0], initPosition[1], boxs[i][2] - 0.09], None)
+    robot.move(targetName, [initPosition[0], initPosition[1], 0.6], None)
+    robot.move(targetName, [toolPosition[0], toolPosition[1], 0.6], None)
+    # if shape[2] >= 0.15:
+    #     robot.move(targetName, [toolPosition[0], toolPosition[1], toolPosition[2] + 0.006], None)
+    # if shape[2] >= 0.1:
+    #     robot.move(targetName, [toolPosition[0], toolPosition[1], toolPosition[2] + 0.006], None)
+    # elif shape[1] >= 0.05:
+    #     robot.move(targetName, [toolPosition[0], toolPosition[1], toolPosition[2] + 0.006], None)
+    # else:
+    #     robot.move(targetName, [toolPosition[0], toolPosition[1], toolPosition[2] + 0.006], None)
+    robot.move(targetName, [toolPosition[0], toolPosition[1], toolPosition[2] - 0.02], None)
+
+    simRet, currPosition = vrep.simxGetObjectPosition(robot.clientID, curr, -1, vrep.simx_opmode_blocking)
+    print('currPosition1: ', currPosition, 'lossX: %.3f'%(toolPosition[0] - currPosition[0]), 'lossY: %.3f'%(toolPosition[1] - currPosition[1]) )
+
+    robot.closeSucker(objectName, clouseParentObjectName)
+    robot.closeSucker(objectName, clouseParentObjectName)
+    robot.openSucker(objectName, openParentObjectName)
+    robot.openSucker(objectName, openParentObjectName)
+    robot.move(targetName, [toolPosition[0], toolPosition[1], 0.6], None)
+
+    simRet, currPosition = vrep.simxGetObjectPosition(robot.clientID, curr, -1, vrep.simx_opmode_blocking)
+    print('currPosition2: ', currPosition, 'lossX: %.3f'%(toolPosition[0] - currPosition[0]), 'lossY: %.3f'%(toolPosition[1] - currPosition[1]) )
+
 
 
 ### end demo
 # robot.stop()
-
 
 
 
