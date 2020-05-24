@@ -5,6 +5,7 @@ from simulation import vrep
 
 import time
 import cv2
+import math
 
 import bincutting as box
 
@@ -243,7 +244,7 @@ class Robot(object):
             exit()
 
 
-    def createPureShape(self, toolShape, toolPosition, mass = 2000):
+    def createPureShape(self, toolShape, toolPosition, mass = 20000):
 
         # the name of the scene object where the script is attached to, or an empty string if the script has no associated scene object
         scriptDescription = 'remoteApiCommandServer'
@@ -398,30 +399,30 @@ openParentObjectName = 'suctionPad'
 
 # add cuboid
 boxs = box.newBoxs
+# boxs = box.boxs
 # print(boxs)
 boxsNum = len(boxs)
 
-loss = 0.0
+loss = []
+heightLoss = []
+handles = []
 
 for i in range(boxsNum):
     shape = [boxs[i][0], boxs[i][1], boxs[i][2]]
-    toolPosition = [boxs[i][3], boxs[i][4], boxs[i][5] + boxs[i][2]/1.5]
+    toolPosition = [boxs[i][3], boxs[i][4], boxs[i][5] + boxs[i][2]/2]
     print('This is the %dth, a total of %d cubes'%(i+1, boxsNum), 'shape: ', shape, 'toolPosition: ',  toolPosition)
-    initPosition = [0, -0.5, boxs[i][2]/2]
+    # initPosition = [0, -0.5, boxs[i][2]/2]
 
-    scaling = 0.95
+    scaling = 0.98
     robot.createPureShape([shape[0]*scaling, shape[1]*scaling, shape[2]], toolPosition)
 
     simRet, curr = vrep.simxGetObjectHandle(robot.clientID, 'Cuboid'+str(i), vrep.simx_opmode_blocking)
+    handles.append(curr)
 
     simRet, currPosition = vrep.simxGetObjectPosition(robot.clientID, curr, -1, vrep.simx_opmode_blocking)
-    print('currPosition1: ', currPosition, 'lossX: %.3f'%(toolPosition[0] - currPosition[0]), 'lossY: %.3f'%(toolPosition[1] - currPosition[1]) )
+    print('currPosition: ', currPosition, 'lossX: %.3f'%(toolPosition[0] - currPosition[0]), 'lossY: %.3f'%(toolPosition[1] - currPosition[1]) )
 
-    time.sleep(0.2)
-    simRet, currPosition = vrep.simxGetObjectPosition(robot.clientID, curr, -1, vrep.simx_opmode_blocking)
-    print('currPosition2: ', currPosition, 'lossX: %.3f'%(toolPosition[0] - currPosition[0]), 'lossY: %.3f'%(toolPosition[1] - currPosition[1]) )
-
-    loss = loss + (toolPosition[0] - currPosition[0]) + (toolPosition[1] - currPosition[1])
+    time.sleep(0.8)
 
     # print('moveHeight: ', initPosition[2]*2-0.05)
     # print('closeHeight: ', toolPosition[2] + 0.09)
@@ -443,7 +444,20 @@ for i in range(boxsNum):
     # simRet, currPosition = vrep.simxGetObjectPosition(robot.clientID, curr, -1, vrep.simx_opmode_blocking)
     # print('currPosition2: ', currPosition, 'lossX: %.3f'%(toolPosition[0] - currPosition[0]), 'lossY: %.3f'%(toolPosition[1] - currPosition[1]) )
 
-print('loss: ', loss)
+
+for handle in handles:
+
+    simRet, currPosition = vrep.simxGetObjectPosition(robot.clientID, handle, -1, vrep.simx_opmode_blocking)
+    currLoss1 = math.pow( (toolPosition[0] - currPosition[0]), 2 ) + math.pow( (toolPosition[1] - currPosition[1]), 2 )
+    currLoss2 = math.pow( (toolPosition[2] - currPosition[2]), 2 )
+    currLoss = currLoss1 + currLoss2
+    # print('currLoss1: ', currLoss1, 'currLoss2: ', currLoss2)
+    print('currLoss: ', currLoss)
+    loss.append(currLoss)
+    # heightLoss.append(currLoss2)
+
+print('sum of loss: ', sum(loss))
+# print('sum of heightLoss: ', sum(heightLoss))
 
 
 ### end demo

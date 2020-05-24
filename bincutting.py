@@ -177,11 +177,17 @@ for sample in box_list:
         break
     boxs.append(sample)
 
+
 newBoxs = []
-proportion = 40
+proportion = 20
 for sample in boxs:
     # shape position
-    newBoxs.append((sample[0]/proportion, sample[1]/proportion, sample[2]/proportion, -sample[3]/proportion-0.4, sample[4]/proportion-0.125, sample[5]/proportion))
+    newBoxs.append((sample[0]/proportion, sample[1]/proportion, sample[2]/proportion, sample[3]/proportion, sample[4]/proportion, sample[5]/proportion))
+print(newBoxs)
+# proportion = 40
+# for sample in boxs:
+#     # shape position
+#     newBoxs.append((sample[0]/proportion, sample[1]/proportion, sample[2]/proportion, -sample[3]/proportion-0.4, sample[4]/proportion-0.125, sample[5]/proportion))
 
 # boxs = newBoxs
 # boxsNum = len(boxs)
