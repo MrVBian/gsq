@@ -171,19 +171,19 @@ env = CuttingBoxCreator((10,10,10),(2,2,2,5,5,5))
 env.reset()
 box_list = env.preview(1000)
 
-boxs = []
+boxes = []
 for sample in box_list:
     if(sample == (10, 10, 10)):
         break
-    boxs.append(sample)
+    boxes.append(sample)
 
 
-newBoxs = []
-proportion = 20
-for sample in boxs:
+newBoxes = []
+proportion = 40
+for sample in boxes:
     # shape position
-    newBoxs.append((sample[0]/proportion, sample[1]/proportion, sample[2]/proportion, sample[3]/proportion, sample[4]/proportion, sample[5]/proportion))
-print(newBoxs)
+    newBoxes.append((sample[0]/proportion, sample[1]/proportion, sample[2]/proportion, sample[3]/proportion - 0.6, sample[4]/proportion - 0.125, sample[5]/proportion))
+print(newBoxes)
 # proportion = 40
 # for sample in boxs:
 #     # shape position

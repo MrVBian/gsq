@@ -398,22 +398,22 @@ clouseParentObjectName = 'suctionPadLink'
 openParentObjectName = 'suctionPad'
 
 # add cuboid
-boxs = box.newBoxs
+boxes = box.newBoxes
 # boxs = box.boxs
 # print(boxs)
-boxsNum = len(boxs)
+boxesNum = len(boxes)
 
 loss = []
 heightLoss = []
 handles = []
 
-for i in range(boxsNum):
-    shape = [boxs[i][0], boxs[i][1], boxs[i][2]]
-    toolPosition = [boxs[i][3], boxs[i][4], boxs[i][5] + boxs[i][2]/2]
-    print('This is the %dth, a total of %d cubes'%(i+1, boxsNum), 'shape: ', shape, 'toolPosition: ',  toolPosition)
+for i in range(boxesNum):
+    shape = [boxes[i][0], boxes[i][1], boxes[i][2]]
+    toolPosition = [boxes[i][3] + boxes[i][0] * 0.5, boxes[i][4] + boxes[i][1] * 0.5, boxes[i][5] + boxes[i][2] * 0.5]
+    print('This is the %dth, a total of %d cubes'%(i+1, boxesNum), 'shape: ', shape, 'toolPosition: ',  toolPosition)
     # initPosition = [0, -0.5, boxs[i][2]/2]
 
-    scaling = 0.98
+    scaling = 1
     robot.createPureShape([shape[0]*scaling, shape[1]*scaling, shape[2]], toolPosition)
 
     simRet, curr = vrep.simxGetObjectHandle(robot.clientID, 'Cuboid'+str(i), vrep.simx_opmode_blocking)
